@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/boatwork/sync",
+      "schedule": "0 */6 * * *"
+    }
+  ]
+}

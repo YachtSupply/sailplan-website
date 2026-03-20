@@ -1,0 +1,199 @@
+name: Sync Template to Contractor Sites
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout template
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find contractor repos and open sync PRs
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.SYNC_TOKEN }}
+          script: |
+            const templateOwner = 'YachtSupply';
+            const templateRepo = 'marine-pro-website-template';
+
+            // Files/prefixes to NEVER sync (contractor-specific)
+            const skipFiles = new Set(['src/site.config.ts', '.boatwork-template']);
+            const skipPrefixes = ['.github/'];
+
+            // Find all repos in YachtSupply org that end with -website
+            const repos = await github.paginate(github.rest.repos.listForOrg, {
+              org: templateOwner,
+              type: 'public',
+              per_page: 100,
+            });
+
+            const contractorRepos = repos.filter(r =>
+              r.name !== templateRepo &&
+              r.name.endsWith('-website')
+            );
+
+            console.log(`Found ${contractorRepos.length} contractor repos`);
+
+            // Resolve template HEAD from the API — never trust context.sha, which
+            // becomes stale after a force-push / amend.
+            const { data: templateHeadRef } = await github.rest.git.getRef({
+              owner: templateOwner,
+              repo: templateRepo,
+              ref: 'heads/main',
+            });
+            const templateHeadSha = templateHeadRef.object.sha;
+
+            console.log(`Template HEAD: ${templateHeadSha}`);
+
+            // Enumerate every file in the template tree (recursive).
+            // This avoids relying on "files changed in commit X" entirely.
+            const { data: templateTree } = await github.rest.git.getTree({
+              owner: templateOwner,
+              repo: templateRepo,
+              tree_sha: templateHeadSha,
+              recursive: 'true',
+            });
+
+            const syncableFiles = templateTree.tree.filter(entry =>
+              entry.type === 'blob' &&
+              !skipFiles.has(entry.path) &&
+              !skipPrefixes.some(prefix => entry.path.startsWith(prefix))
+            );
+
+            console.log(`Syncable files (${syncableFiles.length}): ${syncableFiles.map(f => f.path).join(', ')}`);
+
+            if (syncableFiles.length === 0) {
+              console.log('No files to sync');
+              return;
+            }
+
+            const branchName = `template-sync-${templateHeadSha.substring(0, 7)}`;
+
+            for (const repo of contractorRepos) {
+              try {
+                const defaultBranch = repo.default_branch;
+
+                // Get current HEAD SHA and its tree SHA in the downstream repo
+                const { data: headRef } = await github.rest.git.getRef({
+                  owner: templateOwner,
+                  repo: repo.name,
+                  ref: `heads/${defaultBranch}`,
+                });
+                const headSha = headRef.object.sha;
+
+                const { data: headCommit } = await github.rest.git.getCommit({
+                  owner: templateOwner,
+                  repo: repo.name,
+                  commit_sha: headSha,
+                });
+                const baseTreeSha = headCommit.tree.sha;
+
+                // Build tree entries — one blob per syncable file
+                const treeEntries = [];
+
+                for (const file of syncableFiles) {
+                  try {
+                    const { data: content } = await github.rest.repos.getContent({
+                      owner: templateOwner,
+                      repo: templateRepo,
+                      path: file.path,
+                      ref: templateHeadSha,
+                    });
+
+                    if (!('content' in content)) continue;
+
+                    // Create blob in the contractor repo
+                    const { data: blob } = await github.rest.git.createBlob({
+                      owner: templateOwner,
+                      repo: repo.name,
+                      content: content.content,
+                      encoding: 'base64',
+                    });
+
+                    treeEntries.push({
+                      path: file.path,
+                      mode: '100644',
+                      type: 'blob',
+                      sha: blob.sha,
+                    });
+                  } catch (err) {
+                    console.error(`Failed to prepare ${file.path} for ${repo.name}:`, err.message);
+                  }
+                }
+
+                if (treeEntries.length === 0) {
+                  console.log(`No valid files to sync to ${repo.name}`);
+                  continue;
+                }
+
+                // Create a single tree with all changes
+                const { data: newTree } = await github.rest.git.createTree({
+                  owner: templateOwner,
+                  repo: repo.name,
+                  base_tree: baseTreeSha,
+                  tree: treeEntries,
+                });
+
+                // Create a single commit
+                const { data: newCommit } = await github.rest.git.createCommit({
+                  owner: templateOwner,
+                  repo: repo.name,
+                  message: `chore: sync template update (${templateHeadSha.substring(0, 7)})\n\nFiles updated: ${treeEntries.map(e => e.path).join(', ')}`,
+                  tree: newTree.sha,
+                  parents: [headSha],
+                  author: {
+                    name: 'Andi Anderson',
+                    email: 'andi@sailplan.com',
+                    date: new Date().toISOString(),
+                  },
+                });
+
+                // Create branch pointing directly to the new commit (no intermediate states)
+                try {
+                  await github.rest.git.createRef({
+                    owner: templateOwner,
+                    repo: repo.name,
+                    ref: `refs/heads/${branchName}`,
+                    sha: newCommit.sha,
+                  });
+                } catch (e) {
+                  // Branch already exists — update it
+                  console.log(`Branch ${branchName} already exists in ${repo.name}, updating`);
+                  await github.rest.git.updateRef({
+                    owner: templateOwner,
+                    repo: repo.name,
+                    ref: `heads/${branchName}`,
+                    sha: newCommit.sha,
+                    force: true,
+                  });
+                }
+
+                // Open PR (skip if one already exists for this branch)
+                try {
+                  const { data: pr } = await github.rest.pulls.create({
+                    owner: templateOwner,
+                    repo: repo.name,
+                    title: `Template sync from ${templateHeadSha.substring(0, 7)}`,
+                    body: `Automated template sync from [marine-pro-website-template](https://github.com/${templateOwner}/${templateRepo}/commit/${templateHeadSha}).\n\n**Files updated:** ${treeEntries.length}\n**Template commit:** ${templateHeadSha.substring(0, 7)}\n\nThis PR was opened automatically. Review and merge when ready.\n\n⚠️ \`src/site.config.ts\` and \`.boatwork-template\` are never touched by this sync.`,
+                    head: branchName,
+                    base: defaultBranch,
+                  });
+                  console.log(`Opened PR #${pr.number} in ${repo.name}: ${pr.html_url}`);
+                } catch (e) {
+                  if (e.status === 422) {
+                    console.log(`PR already exists for ${branchName} in ${repo.name}, skipping`);
+                  } else {
+                    throw e;
+                  }
+                }
+
+              } catch (err) {
+                console.error(`Failed to process ${repo.name}:`, err.message);
+              }
+            }
