@@ -39,8 +39,8 @@ export const siteConfig = {
 
   // ── Boatwork integration ──────────────────────────────────
   boatwork: {
-    profileSlug: 'template',
-    profileId: '', // UUID — set during provisioning, permanent link to profile
+    profileSlug: 'sailplan',
+    profileId: 'b7b5692f-f5d1-4b14-a5fc-4a2078a02200', // UUID — set during provisioning, permanent link to profile
     profileUrl: 'https://boatwork.co/pro/template/',
     logoUrl: 'https://boatwork.co/images/boatwork-logo.png',
     useLiveReviews: false,
