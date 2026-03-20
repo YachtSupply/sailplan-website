@@ -1,0 +1,43 @@
+{
+  "updatedAt": "2026-03-20T23:41:57.560Z",
+  "specialtiesKey": "Marine Electrical & Electronics",
+  "servicesKey": "",
+  "contentVersion": "6",
+  "content": {
+    "tagline": "Intelligent Systems Powering the Modern Maritime Industry",
+    "about": "At SailPlan, based in Fort Lauderdale, FL — the marine capital of the world — we're building the intelligent technology platform that powers the maritime industry's digital transformation. Our comprehensive ecosystem connects vessel performance data with real-world service delivery, turning maintenance insights into immediate, coordinated action across fleets and individual vessels alike.\n\nOur platform specializes in marine electrical and electronics integration, bridging the gap between onboard systems and the professionals who service them. From advanced navigation electronics and vessel monitoring systems to full electrical diagnostics and smart connectivity solutions, SailPlan's technology speaks the language of the sea. We work across the full spectrum of marine electrical infrastructure — wiring, power management, instrumentation, and data-driven diagnostics — ensuring that every system aboard performs reliably and efficiently.\n\nSailPlan serves a wide range of clients across South Florida and beyond, from massive commercial shipping operations navigating the waters off Fort Lauderdale and Miami to recreational boaters throughout the region who simply need a trusted professional for everyday electrical service. Whether you're managing a commercial fleet or keeping a single vessel in top shape on the Intracoastal, our platform connects you with the right service at the right time. We're committed to making marine service smarter, faster, and more dependable — because on the water, reliability isn't optional.",
+    "seoTitle": "SailPlan | Marine Electrical & Electronics Fort Lauderdale, FL",
+    "seoDescription": "SailPlan delivers marine electrical & electronics solutions in Fort Lauderdale & South Florida. Connect vessel data with expert service. Contact us today.",
+    "seoKeywords": [
+      "marine electrical Fort Lauderdale",
+      "marine electronics Fort Lauderdale FL",
+      "boat electrical systems South Florida",
+      "vessel electronics installation Fort Lauderdale",
+      "marine wiring services Fort Lauderdale",
+      "boat electronics diagnostics South Florida",
+      "marine electrical contractor Fort Lauderdale",
+      "vessel monitoring systems South Florida"
+    ],
+    "serviceDescriptions": {
+      "Marine Electrical & Electronics": "SailPlan's marine electrical and electronics services cover everything from onboard wiring and power management to navigation electronics installation, vessel monitoring systems, and smart connectivity integration. Our technology platform connects real-time vessel performance data with qualified service professionals, ensuring electrical issues are diagnosed accurately and resolved efficiently. Whether it's a full electrical refit or a targeted electronics upgrade, SailPlan keeps critical onboard systems running reliably."
+    },
+    "serviceAreaDescription": "SailPlan is based in Fort Lauderdale, FL, providing marine electrical and electronics services throughout South Florida.",
+    "commonProjects": [
+      "Marine electrical system diagnostics and fault troubleshooting aboard vessels",
+      "Navigation electronics installation including chartplotters, VHF, and AIS",
+      "Vessel monitoring system setup and real-time data integration",
+      "Onboard power management and battery system upgrades",
+      "Complete marine electrical rewiring and panel replacement projects",
+      "Smart connectivity and NMEA 2000 network installation and configuration",
+      "Commercial fleet electrical maintenance and performance data reporting"
+    ],
+    "serviceAreaLocalities": [
+      "Gulf Coast",
+      "East Coast",
+      "Caribbean",
+      "Atlantic Seaboard",
+      "Bahamas"
+    ],
+    "serviceAreaTitle": "Our Service Area"
+  }
+}
