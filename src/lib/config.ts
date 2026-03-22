@@ -22,7 +22,7 @@ export function getProfileUrl(): string {
 }
 
 export function getBoatworkLogoUrl(): string {
-  return bw().logoUrl || 'https://boatwork.co/images/boatwork-logo.png';
+  return bw().logoUrl || '/boatwork-logo.svg';
 }
 
 export function getStaticReviews(): any[] {
@@ -36,7 +36,7 @@ export function getBoatworkConfig(): Record<string, any> {
     profileSlug: b.profileSlug || 'template',
     profileId: b.profileId || '',
     profileUrl: b.profileUrl || '',
-    logoUrl: b.logoUrl || 'https://boatwork.co/images/boatwork-logo.png',
+    logoUrl: b.logoUrl || '/boatwork-logo.svg',
     useLiveReviews: b.useLiveReviews || false,
     staticReviews: b.staticReviews || [],
   };

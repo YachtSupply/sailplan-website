@@ -9,7 +9,6 @@ const ALL_LINKS = [
   { href: '/about', label: 'About' },
   { href: '/services', label: 'Services' },
   { href: '/portfolio', label: 'Portfolio', requiresPortfolio: true },
-  { href: '/social', label: 'Social' },
   { href: '/contact', label: 'Contact' },
 ];
 
